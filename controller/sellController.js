@@ -1,39 +1,49 @@
-const fs = require("fs");
-const formidable = require("express-formidable");
-const path = require("path");
 const Sell = require("../models/sell");
-const {generateId} = require("../utils/IdGenerator")
+const { generateId } = require("../utils/IdGenerator");
+const cloudinary = require("cloudinary").v2;
+const dotenv = require("dotenv");
+
+dotenv.config();
+
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const sellItem = async (req, res) => {
     try {
         const { itemName, category, sellPrice, description, city } = req.fields; // Form data
         const userId = req.userId;
         const { images } = req.files; // File data
-        //console.log(req);
+
         if (!images) {
             return res.status(400).json({ error: "No image uploaded" });
         }
-        // Create upload directory if not exists
-        const uploadDir = path.join(__dirname, "../data/uploads");
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        // Rename and move the uploaded file
-        const fileName = `image_${Date.now()}${path.extname(images.name)}`;
-        const filePath = path.join(uploadDir, fileName);
-        fs.renameSync(images.path, filePath);
+
+        // Generate unique itemId
+        const itemId = generateId();
+
+        // Upload image to Cloudinary with itemId as filename
+        const cloudinaryResponse = await cloudinary.uploader.upload(images.path, {
+            folder: "sellease", // Store images in 'sellease' folder in Cloudinary
+            public_id: itemId,  // Set filename as itemId
+            overwrite: true     // Overwrite if already exists
+        });
 
         // Save form data in MongoDB
         const newSellItem = new Sell({
-            sellId : generateId(),
+            sellId: itemId,
             userId,
             itemName,
             category,
             sellPrice,
             description,
             city,
-            images: fileName, // Store only filename
+            images: cloudinaryResponse.secure_url // Store Cloudinary image URL
         });
+
         await newSellItem.save();
         return res.status(201).json({ message: "Item listed successfully", data: newSellItem });
 
