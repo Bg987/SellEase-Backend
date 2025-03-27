@@ -13,7 +13,7 @@ const signup = async (req, res) => {
     try {
         console.log("req");
         const { username, email, password, mobile, city } = req.fields;
-        if(mobile.toString().length!=10||Number.isNaN(mobile)){
+        if (mobile.toString().length != 10 || Number.isNaN(mobile)) {
             return res.status(400).json({ success: false, message: "Mobile Number must be 10 digits" });
         }
         // Check if user already exists
@@ -60,7 +60,7 @@ const verifyOTP = async (req, res) => {
             return res.status(400).json({ message: "Incorrect OTP" });
         }
 
-        
+
         // Ensure password exists
         if (!decoded.password) {
             return res.status(400).json({ message: "Missing password" });
@@ -110,9 +110,9 @@ const login = async (req, res) => {
             httpOnly: true,
             sameSite: "None",
             maxAge: 24 * 60 * 60 * 1000,
-            secure : true
+            secure: true
         });
-        res.status(200).json({ message: "Login successful", userId: user.userId, Uname: user.username, city : user.city });
+        res.status(200).json({ message: "Login successful", userId: user.userId, Uname: user.username, city: user.city });
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: "Login failed" });
@@ -121,8 +121,11 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        res.cookie("token", "", { expires: new Date(0), httpOnly: true }); // Clear JWT token from cookies
-        res.status(200).json({ message: "Logged out successfully" });
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: true, // Ensure it's true if using HTTPS
+            sameSite: "None" // Important for cross-origin requests
+        }); res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
         res.status(500).json({ error: "Logout failed" });
     }
