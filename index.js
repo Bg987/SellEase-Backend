@@ -12,8 +12,9 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: ["http://192.168.254.47:5173","http://172.26.32.1:5173","http://localhost:5173","https://sell-ease-frontend-w8.vercel.app"], // Frontend URL
+        origin: ["https://sell-ease-frontend-w8.vercel.app"], // Frontend URL
         methods: ["GET", "POST"],
+        credentials: true // Allows sending cookies & authentication headers
     }
 });
 
@@ -27,13 +28,33 @@ const verifyToken = require("./middleware/authMiddleware");
 
 // Import socket setup
 const setupSocketIo = require("./utils/chatSocket");
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "https://sell-ease-frontend-w8.vercel.app");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    
+    // Handle OPTIONS request for CORS preflight
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(200);
+    }
+
+    next();
+});
+
+// Then apply the CORS package
+app.use(cors({
+    origin: "https://sell-ease-frontend-w8.vercel.app",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
 
 // Middleware
 app.use("/uploads", express.static("data/uploads"));
 app.use(formidable());
 app.use(cookieParser());
 app.use(cors({
-    origin: ["http://192.168.254.47:5173","http://172.26.32.1:5173","http://localhost:5173","https://sell-ease-frontend-w8.vercel.app/"],
+    origin: ["https://sell-ease-frontend-w8.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 }));
