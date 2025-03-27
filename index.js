@@ -35,7 +35,7 @@ app.use(cookieParser());
 app.use(cors({
     origin: ["http://192.168.254.47:5173","http://172.26.32.1:5173","http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    credentials: true,
 }));
 app.get("/test",(req,res)=>{
     res.status(200).send("Hello World");
