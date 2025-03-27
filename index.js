@@ -7,7 +7,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const formidable = require("express-formidable");
 
-dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
