@@ -12,7 +12,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: ["http://192.168.254.47:5173","http://172.26.32.1:5173","http://localhost:5173"], // Frontend URL
+        origin: ["http://192.168.254.47:5173","http://172.26.32.1:5173","http://localhost:5173","https://sell-ease-frontend-w8.vercel.app/"], // Frontend URL
         methods: ["GET", "POST"],
     }
 });
@@ -33,7 +33,7 @@ app.use("/uploads", express.static("data/uploads"));
 app.use(formidable());
 app.use(cookieParser());
 app.use(cors({
-    origin: ["http://192.168.254.47:5173","http://172.26.32.1:5173","http://localhost:5173"],
+    origin: ["http://192.168.254.47:5173","http://172.26.32.1:5173","http://localhost:5173","https://sell-ease-frontend-w8.vercel.app/"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 }));
