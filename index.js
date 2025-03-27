@@ -3,7 +3,7 @@ const http = require("http");
 const socketIo = require("socket.io");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
+
 const cors = require("cors");
 const formidable = require("express-formidable");
 
@@ -52,7 +52,7 @@ app.use("/api/chat", chatRoutes);
 setupSocketIo(io);
 
 // Connect to MongoDB and start the server
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect('mongodb+srv://220170116016:GulEviirQbnM7S2x@clusterbg.2ubxl.mongodb.net/?retryWrites=true&w=majority&appName=ClusterBg')
     .then(() => {
         console.log("Database connected successfully");
         server.listen(5000, () => {
