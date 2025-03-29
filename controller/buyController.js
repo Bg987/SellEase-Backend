@@ -5,8 +5,7 @@ const buy = async (req, res) => {
     try {
         items = await Sell.find({ userId: { $ne: userId } }); // Exclude user's items
         if (items.length > 0) {
-            // Map through items and generate full URLs for all images
-            res.json({ success: true, items});
+            res.json({ success: true, items: items});
         } else {
             res.json({ success: false, message: "No items found for this user." });
         }
