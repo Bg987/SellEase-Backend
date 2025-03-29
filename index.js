@@ -29,7 +29,7 @@ const verifyToken = require("./middleware/authMiddleware");
 // Import socket setup
 const setupSocketIo = require("./utils/chatSocket");
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://192.168.254.47:5173");
+    res.header("Access-Control-Allow-Origin", "https://sell-ease-frontend-w8.vercel.app");
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
