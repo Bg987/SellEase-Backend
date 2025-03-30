@@ -9,9 +9,8 @@ dotenv.config();
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
 const sellItem = async (req, res) => {
     try {
         const { itemName, category, sellPrice, description, city } = req.fields; // Form data
