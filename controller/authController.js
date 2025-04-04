@@ -105,18 +105,18 @@ const login = async (req, res) => {
         // Generate JWT token
         const token = jwt.sign({ userId: user.userId }, JWT_SECRET, { expiresIn: "7d" });
         // Set cookie(testing)
-        res.cookie("token", token, {
-            httpOnly: true,
-            maxAge: 36000 * 1000, // 10 hour
-            secure: false,
-        });
-        //for production
         // res.cookie("token", token, {
         //     httpOnly: true,
-        //     sameSite: "None",
-        //     maxAge: 24 * 60 * 60 * 1000,
-        //     secure: true
+        //     maxAge: 36000 * 1000, // 10 hour
+        //     secure: false,
         // });
+        //for production
+        res.cookie("token", token, {
+            httpOnly: true,
+            sameSite: "None",
+            maxAge: 24 * 60 * 60 * 1000,
+            secure: true
+        });
         res.status(200).json({ message: "Login successful", userId: user.userId, Uname: user.username, city: user.city });
     } catch (error) {
         console.log(error);
@@ -127,13 +127,13 @@ const login = async (req, res) => {
 const logout = async (req, res) => {
     try {
         //for testing
-        res.clearCookie('token');
+        //res.clearCookie('token');
         //for production
-        // res.clearCookie("token", {
-        //     httpOnly: true,
-        //     secure: true, // Ensure it's true if using HTTPS
-        //     sameSite: "None" // Important for cross-origin requests
-        // }); 
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: true, // Ensure it's true if using HTTPS
+            sameSite: "None" // Important for cross-origin requests
+        }); 
         res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
         res.status(500).json({ error: "Logout failed" });
