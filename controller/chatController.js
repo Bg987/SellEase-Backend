@@ -33,8 +33,8 @@ exports.getUnreadMessages = async (req, res) => {
 };
 exports.SetName = async (req, res) => {
     try {
-        const userId  = req.userId;
-         const {friendName,friendId} = req.fields;
+        const userId = req.userId;
+        const { friendName, friendId } = req.fields;
         // // Check if a name already exists for this friend
         let existingEntry = await SetName.findOne({ userId, friendId });
 
@@ -94,7 +94,7 @@ exports.getChatUsers = async (req, res) => {
 
         // Attach unread status and replace userId with friendName if available
         const usersData = uniqueUserIds.map((id) => ({
-            userId : id,
+            userId: id,
             name: nameMap[id] || id, // Replace with friendName if found
             hasUnreadMessages: unseenUserIds.includes(id),
         }));
@@ -108,4 +108,22 @@ exports.getChatUsers = async (req, res) => {
     }
 };
 
+exports.getName = async (req, res) => {
+    try {
+        const userId1 = req.userId;
+        const userId2 = req.fields.friendId;
+        if (!userId1 || !userId2) {
+            res.status(400).json({ error: "improper data" });
+        }
+        const friendName = await SetName.findOne({ userId: userId1, friendId: userId2 }, "friendName");
+        if(!friendName){
+            res.status(404).json({error : "not found"});
+        }
+        res.status(200).json({ name: friendName });
+    }
+    catch (err) {
+        console.error("Error fetching chat users:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+}
 

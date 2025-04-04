@@ -2,6 +2,7 @@ const Sell = require("../models/sell");
 const { generateId } = require("../utils/IdGenerator");
 const cloudinary = require("cloudinary").v2;
 const dotenv = require("dotenv");
+const sharp = require("sharp");
 
 dotenv.config();
 
@@ -11,27 +12,39 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
 const sellItem = async (req, res) => {
     try {
-        const { itemName, category, sellPrice, description, city } = req.fields; // Form data
+        const { itemName, category, sellPrice, description, city } = req.body;
         const userId = req.userId;
-        const { images } = req.files; // File data
+        const images = req.files; // Multer stores images in `req.files`
 
-        if (!images) {
-            return res.status(400).json({ error: "No image uploaded" });
+        if (!images || images.length !== 3) {
+            return res.status(400).json({ error: "Exactly 3 images must be uploaded" });
         }
-
         // Generate unique itemId
         const itemId = generateId();
 
-        // Upload image to Cloudinary with itemId as filename
-        const cloudinaryResponse = await cloudinary.uploader.upload(images.path, {
-            folder: "sellease", // Store images in 'sellease' folder in Cloudinary
-            public_id: itemId,  // Set filename as itemId
-            overwrite: true     // Overwrite if already exists
-        });
+        // Process and upload each image
+        const uploadedImages = await Promise.all(images.map(async (image, index) => {
+            const compressedImageBuffer = await sharp(image.buffer)
+                .resize(800)
+                .webp({ quality: 50 }) // Convert & compress
+                .toBuffer();
 
-        // Save form data in MongoDB
+            return new Promise((resolve, reject) => {
+                cloudinary.uploader.upload_stream(
+                    {
+                        folder: "sellease",
+                        public_id: `${itemId}_${index}`, // Unique name per image
+                        resource_type: "image"
+                    },
+                    (error, result) => (error ? reject(error) : resolve(result.secure_url))
+                ).end(compressedImageBuffer);
+            });
+        }));
+
+        // Save to MongoDB
         const newSellItem = new Sell({
             sellId: itemId,
             userId,
@@ -40,11 +53,11 @@ const sellItem = async (req, res) => {
             sellPrice,
             description,
             city,
-            images: cloudinaryResponse.secure_url // Store Cloudinary image URL
+            images: uploadedImages, // Store array of 3 image URLs
         });
 
         await newSellItem.save();
-        return res.status(201).json({ message: "Item listed successfully", data: newSellItem });
+        return res.status(201).json({ message: "Item listed successfully" });
 
     } catch (error) {
         console.error("Error saving item:", error);

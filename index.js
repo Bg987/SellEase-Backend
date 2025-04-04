@@ -3,10 +3,10 @@ const http = require("http");
 const socketIo = require("socket.io");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
-
 const cors = require("cors");
 const formidable = require("express-formidable");
 const originX = "https://sell-ease-frontend-w8.vercel.app"
+//https://sell-ease-frontend-w8.vercel.app
 //http://192.168.254.47:5173
 const app = express();
 const server = http.createServer(app);
@@ -17,7 +17,6 @@ const io = socketIo(server, {
         credentials: true // Allows sending cookies & authentication headers
     }
 });
-
 // Import routes
 const authRoutes = require("./routes/authRoutes");
 const sellRoutes = require("./routes/sellRoutes");
@@ -38,7 +37,6 @@ app.use((req, res, next) => {
     if (req.method === "OPTIONS") {
         return res.sendStatus(200);
     }
-
     next();
 });
 
@@ -51,7 +49,7 @@ app.use(cors({
 
 // Middleware
 app.use("/uploads", express.static("data/uploads"));
-app.use(formidable());
+
 app.use(cookieParser());
 
 app.use(cors({
@@ -63,11 +61,11 @@ app.get("/test",(req,res)=>{
     res.status(200).send("Hello World");
 })
 // Routes
-app.use("/auth", authRoutes);
+app.use("/auth",formidable(), authRoutes);
 app.use("/sell", verifyToken, sellRoutes);
 app.use("/history", verifyToken, hisRoutes);
 app.use("/buy", verifyToken, buyRoutes);
-app.use("/api/chat", chatRoutes);
+app.use("/api/chat",formidable(), chatRoutes);
 
 // Setup socket.io
 setupSocketIo(io);

@@ -8,4 +8,5 @@ router.get("/unread",authMiddleware ,chatController.getUnreadMessages);
 router.put("/markAsRead", authMiddleware ,chatController.markMessagesAsRead);
 router.get("/chatUser", authMiddleware ,chatController.getChatUsers);
 router.post("/setName", authMiddleware ,chatController.SetName);
+router.post("/getName", authMiddleware ,chatController.getName);
 module.exports = router;

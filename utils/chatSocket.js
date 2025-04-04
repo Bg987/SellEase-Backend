@@ -22,7 +22,7 @@ const setupSocketIo = (io) => {
                     timestamp: new Date(),
                     read: false, // Initially set to false because it is not read yet
                 });
-                console.log(newMessage);
+                //console.log(newMessage);
                 await newMessage.save();
                 //console.log("Message saved:", newMessage);
 
