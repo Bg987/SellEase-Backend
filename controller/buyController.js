@@ -5,13 +5,13 @@ const buy = async (req, res) => {
     try {
         items = await Sell.find({ userId: { $ne: userId } }); // Exclude user's items
         if (items.length > 0) {
-            res.json({ success: true, items: items});
+            return res.json({ success: true, items: items });
         } else {
-            res.json({ success: false, message: "No items found for this user." });
+            return res.json({ success: false, message: "No items found for this user." });
         }
     } catch (error) {
         console.log(error);
-        res.status(500).json({ success: false, message: "Server error", error });
+        return res.status(500).json({ success: false, message: "Server error", error });
     }
 };
 

@@ -36,14 +36,14 @@ const signup = async (req, res) => {
         // Send OTP via email
         const mailStatus = await sendMail(email, otpString);
         if (mailStatus) {
-            res.status(200).json({ token, message: "OTP sent successfully" });
+           return res.status(200).json({ token, message: "OTP sent successfully" });
         }
         else {
-            res.status(500).json({ error: "Failed to send OTP" });
+            return res.status(500).json({ error: "Failed to send OTP" });
         }
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: "Failed to send OTP" });
+        return res.status(500).json({ error: "Failed to send OTP" });
     }
 };
 const verifyOTP = async (req, res) => {
@@ -114,13 +114,13 @@ const login = async (req, res) => {
         res.cookie("token", token, {
             httpOnly: true,
             sameSite: "None",
-            maxAge: 24 * 60 * 60 * 1000,
+            maxAge: 24000000 * 60 * 60 * 1000,
             secure: true
         });
-        res.status(200).json({ message: "Login successful", userId: user.userId, Uname: user.username, city: user.city });
+        return res.status(200).json({ message: "Login successful", userId: user.userId, Uname: user.username, city: user.city });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: "Login failed" });
+        return res.status(500).json({ error: "Login failed" });
     }
 };
 
@@ -134,9 +134,9 @@ const logout = async (req, res) => {
             secure: true, // Ensure it's true if using HTTPS
             sameSite: "None" // Important for cross-origin requests
         }); 
-        res.status(200).json({ message: "Logged out successfully" });
+        return res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
-        res.status(500).json({ error: "Logout failed" });
+        return res.status(500).json({ error: "Logout failed" });
     }
 };
 

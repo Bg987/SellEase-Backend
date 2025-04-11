@@ -12,9 +12,9 @@ exports.getChatHistory = async (req, res) => {
                 { senderId: receiverId, receiverId: senderId }
             ]
         }).sort({ timestamp: 1 });
-        res.json(chats);
+        return res.json(chats);
     } catch (err) {
-        res.status(500).json({ error: "Server error" });
+        return res.status(500).json({ error: "Server error" });
     }
 };
 
@@ -26,9 +26,9 @@ exports.getUnreadMessages = async (req, res) => {
             receiverId: userId,
             read: false
         });
-        res.status(200).json({ unreadCount });
+        return res.status(200).json({ unreadCount });
     } catch (err) {
-        res.status(500).json({ error: "Server error" });
+        return res.status(500).json({ error: "Server error" });
     }
 };
 exports.SetName = async (req, res) => {
@@ -63,9 +63,9 @@ exports.markMessagesAsRead = async (req, res) => {
             { senderId, receiverId, read: false },
             { $set: { read: true } }
         );
-        res.json({ success: true });
+        return res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: "Server error" });
+        return res.status(500).json({ error: "Server error" });
     }
 };
 
@@ -98,13 +98,13 @@ exports.getChatUsers = async (req, res) => {
             name: nameMap[id] || id, // Replace with friendName if found
             hasUnreadMessages: unseenUserIds.includes(id),
         }));
-        res.json({
+        return res.json({
             success: true,
             users: usersData, // Both seen/unseen status
         });
     } catch (err) {
         console.error("Error fetching chat users:", err);
-        res.status(500).json({ error: "Server error" });
+       return res.status(500).json({ error: "Server error" });
     }
 };
 
@@ -113,17 +113,17 @@ exports.getName = async (req, res) => {
         const userId1 = req.userId;
         const userId2 = req.fields.friendId;
         if (!userId1 || !userId2) {
-            res.status(400).json({ error: "improper data" });
+            return res.status(400).json({ error: "improper data" });
         }
         const friendName = await SetName.findOne({ userId: userId1, friendId: userId2 }, "friendName");
         if(!friendName){
-            res.status(404).json({error : "not found"});
+            return res.status(404).json({error : "not found"});
         }
-        res.status(200).json({ name: friendName });
+       return  res.status(200).json({ name: friendName });
     }
     catch (err) {
         console.error("Error fetching chat users:", err);
-        res.status(500).json({ error: "Server error" });
+       return res.status(500).json({ error: "Server error" });
     }
 }
 

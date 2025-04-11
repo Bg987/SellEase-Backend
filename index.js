@@ -28,7 +28,7 @@ const verifyToken = require("./middleware/authMiddleware");
 // Import socket setup
 const setupSocketIo = require("./utils/chatSocket");
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin",originX);
+    res.header("Access-Control-Allow-Origin", originX);
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 
 // Then apply the CORS package
 app.use(cors({
-    origin : originX,
+    origin: originX,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
@@ -57,15 +57,15 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 }));
-app.get("/test",(req,res)=>{
+app.get("/test", (req, res) => {
     res.status(200).send("Hello World");
 })
 // Routes
-app.use("/auth",formidable(), authRoutes);
+app.use("/auth", formidable(), authRoutes);
 app.use("/sell", verifyToken, sellRoutes);
 app.use("/history", verifyToken, hisRoutes);
 app.use("/buy", verifyToken, buyRoutes);
-app.use("/api/chat",formidable(), chatRoutes);
+app.use("/api/chat", formidable(), chatRoutes);
 
 // Setup socket.io
 setupSocketIo(io);
