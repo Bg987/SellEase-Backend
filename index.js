@@ -5,9 +5,8 @@ const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const formidable = require("express-formidable");
-const originX = "https://sell-ease-frontend-w8.vercel.app"
-//https://sell-ease-frontend-w8.vercel.app
-//http://192.168.254.47:5173
+const originX = process.env.NODE_ENV === 'production' ? "https://sell-ease-frontend-w8.vercel.app" : "http://192.168.121.47:5173";
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -66,7 +65,9 @@ app.use("/sell", verifyToken, sellRoutes);
 app.use("/history", verifyToken, hisRoutes);
 app.use("/buy", verifyToken, buyRoutes);
 app.use("/api/chat", formidable(), chatRoutes);
-
+app.use("/",(req,res)=>{
+    res.status(400).json({message : "can not found"});
+})
 // Setup socket.io
 setupSocketIo(io);
 

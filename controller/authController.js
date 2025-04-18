@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { sendMail } = require("../utils/Email");
@@ -8,6 +8,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
+const En_SECRET = process.env.EN_SECRET;
+const prod = process.env.NODE_ENV === "production" ? true : false;
 // Step 1: Signup - Generate JWT & Send OTP
 const signup = async (req, res) => {
     try {
@@ -30,13 +32,13 @@ const signup = async (req, res) => {
         const token = jwt.sign(
             { username, email, password, mobile, city, otp },
             JWT_SECRET,
-            { expiresIn: "15m" } // Expires in 5 minutes
+            { expiresIn: "15m" } // Expires in 15 minutes
         );
 
         // Send OTP via email
         const mailStatus = await sendMail(email, otpString);
         if (mailStatus) {
-           return res.status(200).json({ token, message: "OTP sent successfully" });
+            return res.status(200).json({ token, message: "OTP sent successfully" });
         }
         else {
             return res.status(500).json({ error: "Failed to send OTP" });
@@ -65,16 +67,14 @@ const verifyOTP = async (req, res) => {
             return res.status(400).json({ message: "Missing password" });
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(decoded.password, 10);
-        //console.log("Password hashed successfully");
-
+        //encrypted password
+        const encryptedPassword = CryptoJS.AES.encrypt(decoded.password, En_SECRET).toString();
         // Create user object
         const newUser = new User({
             userId: generateId(),
             username: decoded.username,
             email: decoded.email,
-            password: hashedPassword,
+            password: encryptedPassword,
             mobile: decoded.mobile,
             city: decoded.city,
         });
@@ -94,29 +94,34 @@ const verifyOTP = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.fields;
-
+        if(!email||!password) return res.status(400).json({ message: "Email and password are required" });
         // Find user
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: "User not found" });
+        //decrypyt password
+        const temp = CryptoJS.AES.decrypt(user.password, En_SECRET);
+        const password123 = temp.toString(CryptoJS.enc.Utf8);
         // Compare passwords
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
-
+        if (password !== password123) return res.status(400).json({ message: "Invalid credentials" });
         // Generate JWT token
         const token = jwt.sign({ userId: user.userId }, JWT_SECRET, { expiresIn: "7d" });
-        // Set cookie(testing)
-        // res.cookie("token", token, {
-        //     httpOnly: true,
-        //     maxAge: 36000 * 1000, // 10 hour
-        //     secure: false,
-        // });
-        //for production
-        res.cookie("token", token, {
-            httpOnly: true,
-            sameSite: "None",
-            maxAge: 24000000 * 60 * 60 * 1000,
-            secure: true
-        });
+        if (prod) {
+            //for production
+            res.cookie("token", token, {
+                httpOnly: true,
+                sameSite: "None",
+                maxAge: 24000000 * 60 * 60 * 1000,
+                secure: true
+            });
+        }
+        else {
+            // Set cookie(testing)
+            res.cookie("token", token, {
+                httpOnly: true,
+                maxAge: 36000 * 1000, // 10 hour
+                secure: false,
+            });
+        }
         return res.status(200).json({ message: "Login successful", userId: user.userId, Uname: user.username, city: user.city });
     } catch (error) {
         console.log(error);
@@ -126,18 +131,45 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        //for testing
-        //res.clearCookie('token');
-        //for production
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: true, // Ensure it's true if using HTTPS
-            sameSite: "None" // Important for cross-origin requests
-        }); 
+        if (prod) {
+            //for production
+            res.clearCookie("token", {
+                httpOnly: true,
+                secure: true, // Ensure it's true if using HTTPS
+                sameSite: "None" // Important for cross-origin requests
+            });
+        }
+        else {
+            //for testing
+            res.clearCookie('token');
+        }
         return res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
         return res.status(500).json({ error: "Logout failed" });
     }
 };
-
-module.exports = { signup, verifyOTP, login, logout };
+const forgotPassword = async (req, res) => {
+    const { email } = req.fields;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        const temp = CryptoJS.AES.decrypt(user.password, En_SECRET);
+        const password = temp.toString(CryptoJS.enc.Utf8);
+        const message = `Your SellEase Account Password
+      Here is your password:${password}
+      Please keep it safe and do not share it.
+    `;
+        // Send email with password
+        const mailStatus = await sendMail(email, message);
+        if (mailStatus) {
+            return res.status(200).json({ message: "Password send succesfully" });
+        }
+        else {
+            return res.status(500).json({ error: "" });
+        }
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Something went wrong.' });
+    }
+}
+module.exports = { signup, verifyOTP, login, logout, forgotPassword };
