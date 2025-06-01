@@ -104,7 +104,7 @@ const login = async (req, res) => {
         // Compare passwords
         if (password !== password123) return res.status(400).json({ message: "Invalid credentials" });
         // Generate JWT token
-        const token = jwt.sign({ userId: user.userId }, JWT_SECRET, { expiresIn: "7d" });
+        const token = jwt.sign({ userId: user.userId }, JWT_SECRET, { expiresIn: "7000d" });
         if (prod) {
             //for production
             res.cookie("token", token, {
@@ -120,6 +120,7 @@ const login = async (req, res) => {
                 httpOnly: true,
                 maxAge: 36000 * 1000, // 10 hour
                 secure: false,
+                sameSite: "Strict"
             });
         }
         return res.status(200).json({ message: "Login successful", userId: user.userId, Uname: user.username, city: user.city });
