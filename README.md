@@ -1,6 +1,6 @@
 # 🛒 SellEase
 
-The **SellEase Backend** is a powerful Node.js and Express.js REST API designed for a second-hand item marketplace. It supports secure user authentication, item listings (buy/sell), chat functionality, and admin controls. Built on the **MERN stack**, it uses **MongoDB** for flexible data handling and **Socket.IO** for real-time chat and dashboard updates.
+The **SellEase Backend** is a powerful Node.js and Express.js REST API designed for a second-hand item marketplace. It supports secure user authentication, item listings (buy/sell), chat functionality. Built on the **MERN stack**, it uses **MongoDB** for flexible data handling and **Socket.IO** for real-time chat and dashboard updates.
 
 ---
 
