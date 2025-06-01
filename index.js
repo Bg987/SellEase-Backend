@@ -72,7 +72,7 @@ app.use("/",(req,res)=>{
 setupSocketIo(io);
 
 // Connect to MongoDB and start the server
-mongoose.connect('mongodb+srv://220170116016:GulEviirQbnM7S2x@clusterbg.2ubxl.mongodb.net/?retryWrites=true&w=majority&appName=ClusterBg')
+mongoose.connect(process.env.mongoUrl)
     .then(() => {
         console.log("Database connected successfully");
         server.listen(5000, () => {
