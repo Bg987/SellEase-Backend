@@ -12,12 +12,12 @@ const transporter = nodemailer.createTransport({
 });
 
 // Convert sendMail into a Promise-based function
-const sendMail = async (email, msg) => {
+const sendMail = async (email, msg,subject) => {
     try {
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
-            subject: 'Your OTP Code for Registration',
+            subject,
             text: msg,
         });
 

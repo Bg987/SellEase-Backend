@@ -17,7 +17,7 @@ const sellItem = async (req, res) => {
     try {
         const { itemName, category, sellPrice, description, city } = req.body;
         const userId = req.userId;
-        const images = req.files; // Multer stores images in `req.files`
+        const images = req.files; //  images in `req.files`
 
         if (!images || images.length !== 3) {
             return res.status(400).json({ error: "Exactly 3 images must be uploaded" });

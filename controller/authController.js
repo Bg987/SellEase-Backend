@@ -26,7 +26,8 @@ const signup = async (req, res) => {
         }
         const otp = generateOTP();
         // Generate OTP
-        const otpString = `OTP For Login ${otp}`;
+        const subject = `SellEase New User Sign in OTP`
+        const otpString = `OTP For Login ${otp}\nexpires in 15 minutes\nDo not share this OTP with anyone`;
 
         // Create JWT with user data & OTP
         const token = jwt.sign(
@@ -36,7 +37,7 @@ const signup = async (req, res) => {
         );
 
         // Send OTP via email
-        const mailStatus = await sendMail(email, otpString);
+        const mailStatus = await sendMail(email, otpString,subject);
         if (mailStatus) {
             return res.status(200).json({ token, message: "OTP sent successfully" });
         }
@@ -156,12 +157,13 @@ const forgotPassword = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
         const temp = CryptoJS.AES.decrypt(user.password, En_SECRET);
         const password = temp.toString(CryptoJS.enc.Utf8);
+        const subject = `Sellease User Forgot Password`;
         const message = `Your SellEase Account Password
       Here is your password:${password}
       Please keep it safe and do not share it.
     `;
         // Send email with password
-        const mailStatus = await sendMail(email, message);
+        const mailStatus = await sendMail(email, message,subject);
         if (mailStatus) {
             return res.status(200).json({ message: "Password send succesfully" });
         }

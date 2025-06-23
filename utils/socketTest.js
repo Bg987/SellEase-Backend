@@ -1,9 +1,9 @@
 const io = require("socket.io-client");
 
-const SERVER_URL = "https://sellease-backend.onrender.com"; // Update if hosted remotely
+const SERVER_URL = "http://localhost:5000"; // Update if hosted remotely
 const NUM_USERS = 10; // Increase gradually: 10, 20, 50, 100...
 const MESSAGE_INTERVAL = 3000;
-const TEST_DURATION = 20000;
+const TEST_DURATION = 5000;
 
 const users = [];
 let latencyResults = [];
