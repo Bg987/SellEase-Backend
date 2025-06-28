@@ -5,7 +5,9 @@ const chatSchema = new mongoose.Schema({
     receiverId: { type: String, required: true },
     message: { type: String, required: true },
     timestamp: { type: Date, default: Date.now },
-    read: { type: Boolean, default: false }
+    read: { type: Boolean, default: false },
+    suggestions: { type: [String], default: [] }  // ✅ You added this
+
 });
 
 module.exports = mongoose.model("Chat", chatSchema);

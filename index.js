@@ -5,7 +5,7 @@ const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const formidable = require("express-formidable");
-const originX = process.env.NODE_ENV === 'production' ? "https://sell-ease-frontend-w8.vercel.app" : "http://192.168.45.47:5173";
+const originX = process.env.NODE_ENV === 'production' ? "https://sell-ease-frontend-w8.vercel.app" : "http://192.168.56.47:5173";
 
 const app = express();
 const server = http.createServer(app);
