@@ -5,10 +5,22 @@ const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const formidable = require("express-formidable");
+const https = require("https");
 const originX = process.env.NODE_ENV === 'production' ? "https://sell-ease-frontend-w8.vercel.app" : "http://192.168.56.47:5173";
 
 const app = express();
 const server = http.createServer(app);
+async function ping() {
+    setInterval(() => {
+        https.get("https://sellease-backend.onrender.com/test", (res) => {
+            console.log(`Pinged. Status code: ${res.statusCode}`);
+        }).on("error", (e) => {
+            console.error(`Ping failed: ${e.message}`);
+        });
+    },1000); // every 11 minutes
+
+}
+
 const io = socketIo(server, {
     cors: {
         origin: originX, // Frontend URL
@@ -68,6 +80,10 @@ app.use("/api/chat", formidable(), chatRoutes);
 app.use("/",(req,res)=>{
     res.status(400).json({message : "can not found"});
 })
+app.get("/test",(req,res)=>{
+    res.status(200).json("ok");
+})
+
 // Setup socket.io
 setupSocketIo(io);
 
@@ -76,6 +92,7 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log("Database connected successfully");
         server.listen(5000, () => {
+            ping();
             console.log(`Server running on port 5000`);
         });
     })

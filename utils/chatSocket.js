@@ -96,7 +96,7 @@ const setupSocketIo = (io) => {
                         { senderId, receiverId },
                         { senderId: receiverId, receiverId: senderId }
                     ]
-                }).sort({ timestamp: -1 }).limit(5);
+                }).sort({ timestamp: -1 }).limit(9);
 
                 if (!lastMessages.length) return;
 
@@ -107,14 +107,14 @@ const setupSocketIo = (io) => {
 
                 // 3. Create role-aware prompt
                 const prompt = `You are helping a user chat on a second-hand marketplace app for items like electronics, appliances, and vehicles.\n` +
-                    `Based on the following conversation, detect seller and buyer and suggest 3 short, polite, and context-aware replies according to buyer or seller that the user whether seller or buyer acco(You) could send next:\n\n` +
+                    `Based on the following conversation, detect seller and buyer and suggest 4 short, polite, and context-aware replies\n\n` +
                     chatContext;
 
                 // 4. Call Cohere AI
                 const aiRes = await axios.post("https://api.cohere.ai/generate", {
                     model: "command",
                     prompt,
-                    max_tokens: 80,
+                    max_tokens: 100,
                     temperature: 0.7,
                 }, {
                     headers: {
