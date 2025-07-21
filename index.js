@@ -10,6 +10,7 @@ const originX = process.env.NODE_ENV === 'production' ? "https://sell-ease-front
 
 const app = express();
 const server = http.createServer(app);
+
 async function ping() {
     setInterval(() => {
         https.get("https://sellease-backend.onrender.com/test", (res) => {
