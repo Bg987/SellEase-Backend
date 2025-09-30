@@ -41,17 +41,18 @@ const setupSocketIo = (io) => {
                     }).sort({ timestamp: -1 }).limit(10);
 
                     // 3. Build chat context
-                    const prompt = `This is a conversation between two users on a second-hand marketplace app for items like electronics, appliances, and vehicles.\n` +
-                        `Based on the recent chat, suggest 3 short, polite and context-aware replies to help continue the conversation, show interest, or negotiate.\n\nConversation:\n` +
+                    const prompt = `You are helping a user chat on a second-hand marketplace app for items like electronics, appliances, and vehicles.\n` +
+          `Only output 3 short, polite, and context-aware replies that the user could directly send next.\n` +
+          `Do not add numbering, bullets, or markdown formatting. Just return each suggestion on a new line.\n\nConversation:\n` +
                         lastMessages.reverse().map(m =>
                             `${m.senderId === receiverId ? "You" : "Other"}: ${m.message}`
                         ).join('\n');
 
 
                     // 5. Call Cohere
-                    const aiRes = await axios.post("https://api.cohere.ai/generate", {
-                        model: "command",
-                        prompt,
+                    const aiRes = await axios.post("https://api.cohere.ai/v1/chat", {
+                        model: "command-a-03-2025",
+                        query : prompt,
                         max_tokens: 60,
                         temperature: 0.7,
                     }, {
@@ -64,14 +65,11 @@ const setupSocketIo = (io) => {
                     // 6. Extract suggestions
                     const rawText = aiRes.data.text || "";
                     const suggestions = rawText
-                        .split('\n')
-                        .map(line => line.trim())
-                        .filter(line => /^[0-9]+\.\s*["“”']?(.*)["“”']?$/.test(line))
-                        .map(line => {
-                            const match = line.match(/^[0-9]+\.\s*["“”']?(.*)["“”']?$/);
-                            return match ? match[1].trim() : null;
-                        })
-                        .filter(Boolean);
+                      .split("\n")
+                      .map(line => line.replace(/^\*+/, "").trim()) // remove ** or * if Cohere adds them
+                      .filter(line => line.length > 0)
+                      .slice(0, 3); // only keep first 3
+
 
                     // 7. Emit to the **receiver only**
                     io.to(receiverId).emit("aiSuggestions", suggestions);
@@ -107,13 +105,14 @@ const setupSocketIo = (io) => {
 
                 // 3. Create role-aware prompt
                 const prompt = `You are helping a user chat on a second-hand marketplace app for items like electronics, appliances, and vehicles.\n` +
-                    `Based on the following conversation, detect seller and buyer and suggest 4 short, polite, and context-aware replies\n\n` +
+          `Only output 3 short, polite, and context-aware replies that the user could directly send next.\n` +
+          `Do not add numbering, bullets, or markdown formatting. Just return each suggestion on a new line.\n\nConversation:\n` +
                     chatContext;
 
                 // 4. Call Cohere AI
-                const aiRes = await axios.post("https://api.cohere.ai/generate", {
-                    model: "command",
-                    prompt,
+                const aiRes = await axios.post("https://api.cohere.ai/v1/chat", {
+                    model: "command-a-03-2025",
+                    query : prompt,
                     max_tokens: 100,
                     temperature: 0.7,
                 }, {
@@ -124,14 +123,14 @@ const setupSocketIo = (io) => {
                 });
 
                 // 5. Extract suggestions
-                const suggestions = aiRes.data.text
-                    .split('\n')
-                    .map(s => s.trim())
-                    .filter(Boolean)
-                    .filter(s => /^[0-9.]*\s?["“”']?.+/.test(s)) // Optional: keep only clean suggestions
+              const suggestions = aiRes.data.text || "";
+               const ans =      suggestions.split('\n')
+                                .map(s => s.trim())
+                                .filter(Boolean)
+                                .filter(s => /^[0-9.]*\s?["“”']?.+/.test(s)) // Optional: keep only clean suggestions
 
                 // 6. Emit suggestions back to sender
-                io.to(senderId).emit("aiSuggestions", suggestions);
+                io.to(senderId).emit("aiSuggestions", ans);
 
             } catch (error) {
                 console.error("Error in requestSuggestions:", error);
