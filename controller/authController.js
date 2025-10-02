@@ -71,7 +71,6 @@ const verifyOTP = async (req, res) => {
         const { otp, TempId } = req.fields;
         // Retrieve session
         const session = otpSessions.get(TempId);
-        console.log(session);
         if (!session) return res.status(400).json({ message: "Session expired or invalid. Please signup again." });
 
         if (session.expiry < Date.now()) {
