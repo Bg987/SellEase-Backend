@@ -11,12 +11,19 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const En_SECRET = process.env.EN_SECRET;
 const prod = process.env.NODE_ENV === "production" ? true : false;
 // Step 1: Signup - Generate JWT & Send OTP
+const otpSessions = new Map();
+
+// OTP expires in 15 minutes
+const OTP_EXPIRY = 15 * 60 * 1000;
+
 const signup = async (req, res) => {
     try {
         const { username, email, password, mobile, city } = req.fields;
-        if (mobile.toString().length != 10 || Number.isNaN(mobile)) {
+
+        if (mobile.toString().length !== 10 || Number.isNaN(mobile)) {
             return res.status(400).json({ success: false, message: "Mobile Number must be 10 digits" });
         }
+
         // Check if user already exists
         const existingUser = await User.findOne({
             $or: [{ email: email }, { mobile: mobile }]
@@ -24,72 +31,84 @@ const signup = async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ success: false, message: "Email or mobile already exists" });
         }
-        const otp = generateOTP();
-        // Generate OTP
-        const subject = `SellEase New User Sign in OTP`
-        const otpString = `OTP For Login ${otp}\nexpires in 15 minutes\nDo not share this OTP with anyone`;
 
-        // Create JWT with user data & OTP
-        const token = jwt.sign(
-            { username, email, password, mobile, city, otp },
-            JWT_SECRET,
-            { expiresIn: "15m" } // Expires in 15 minutes
-        );
+        // Generate OTP
+        const otp = generateOTP();
+
+        // Generate a unique session ID
+        const sessionId = generateId();
+
+        // Store signup data and OTP in server-side session
+        otpSessions.set(sessionId, {
+            username,
+            email,
+            password,
+            mobile,
+            city,
+            otp, // store plain OTP temporarily; can hash for extra security
+            expiry: Date.now() + OTP_EXPIRY
+        });
 
         // Send OTP via email
-        const mailStatus = await sendMail(email, otpString,subject);
-        if (mailStatus) {
-            return res.status(200).json({ token, message: "OTP sent successfully" });
-        }
-        else {
+        const subject = `SellEase New User Sign Up OTP`;
+        const otpString = `OTP For Signup: ${otp}\nExpires in 15 minutes\nDo not share this OTP with anyone`;
+        const mailStatus = await sendMail(email, otpString, subject);
+         if (mailStatus) {
+            // Return only sessionId to frontend, not OTP
+            return res.status(200).json({ sessionId, message: "OTP sent successfully" });
+        } else {
             return res.status(500).json({ error: "Failed to send OTP" });
         }
+
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ error: "Failed to send OTP" });
+        console.error(error);
+        return res.status(500).json({ error: "Signup failed" });
     }
 };
+
 const verifyOTP = async (req, res) => {
     try {
-        const { otp, token } = req.fields;
-        // Decode JWT
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const { otp, TempId } = req.fields;
+        // Retrieve session
+        const session = otpSessions.get(TempId);
+        if (!session) return res.status(400).json({ message: "Session expired or invalid. Please signup again." });
 
-        if (!decoded) return res.status(400).json({ message: "Invalid token" });
-
+        if (session.expiry < Date.now()) {
+            otpSessions.delete(sessionId);
+            return res.status(400).json({ message: "OTP expired. Please signup again." });
+        }
         // Check OTP
-        if (parseInt(decoded.otp, 10) !== parseInt(otp, 10)) {
+        if (parseInt(session.otp, 10) !== parseInt(otp, 10)) {
             return res.status(400).json({ message: "Incorrect OTP" });
         }
 
+        // Encrypt password
+        const encryptedPassword = CryptoJS.AES.encrypt(session.password, process.env.En_SECRET).toString();
 
-        // Ensure password exists
-        if (!decoded.password) {
-            return res.status(400).json({ message: "Missing password" });
-        }
-
-        //encrypted password
-        const encryptedPassword = CryptoJS.AES.encrypt(decoded.password, En_SECRET).toString();
         // Create user object
         const newUser = new User({
             userId: generateId(),
-            username: decoded.username,
-            email: decoded.email,
+            username: session.username,
+            email: session.email,
             password: encryptedPassword,
-            mobile: decoded.mobile,
-            city: decoded.city,
+            mobile: session.mobile,
+            city: session.city,
         });
-
 
         // Save user to database
         await newUser.save();
-        // Send success response and return to stop further execution
+
+        // Remove session
+        otpSessions.delete(TempId);
+
         return res.status(201).json({ message: "User registered successfully" });
+
     } catch (error) {
         console.error("Error:", error);
         return res.status(500).json({ error: "OTP verification failed", details: error.message });
     }
 };
+
 
 // Step 3: Login & Store JWT in Cookies
 const login = async (req, res) => {
