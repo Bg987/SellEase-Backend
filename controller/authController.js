@@ -102,7 +102,6 @@ const login = async (req, res) => {
         //decrypyt password
         const temp = CryptoJS.AES.decrypt(user.password, En_SECRET);
         const password123 = temp.toString(CryptoJS.enc.Utf8);
-        console.log(password123)
         // Compare passwords~
         if (password !== password123) return res.status(400).json({ message: "Invalid credentials" });
         // Generate JWT token

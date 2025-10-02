@@ -1,16 +1,14 @@
 const nodemailer = require('nodemailer');
+const sgTransport = require("nodemailer-sendgrid");
 const dotenv = require("dotenv");
 
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
+const transporter = nodemailer.createTransport(
+  sgTransport({
+    apiKey: process.env.Mail_API_KEY,
+  })
+);
 // Convert sendMail into a Promise-based function
 const sendMail = async (email, msg,subject) => {
     try {

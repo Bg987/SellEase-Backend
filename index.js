@@ -6,20 +6,20 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const formidable = require("express-formidable");
 const https = require("https");
-const originX = process.env.NODE_ENV === 'production' ? "https://sell-ease-frontend-w8.vercel.app" : "http://192.168.68.47:5173";
+const originX = process.env.NODE_ENV === 'production' ? "https://sell-ease-frontend-w8.vercel.app" : "http://localhost:5173";
 
 const app = express();
 const server = http.createServer(app);
 
-async function ping() {
-    setInterval(() => {
-        https.get("https://sellease-backend-pwzt.onrender.com/test", (res) => {
-            console.log(`Pinged. Status code: ${res.statusCode}`);
-        }).on("error", (e) => {
-            console.error(`Ping failed: ${e.message}`);
-        });
-    },11*60*1000); // every 11 minutes
-}
+// async function ping() {
+//     setInterval(() => {
+//         https.get("https://sellease-backend-pwzt.onrender.com/test", (res) => {
+//             console.log(`Pinged. Status code: ${res.statusCode}`);
+//         }).on("error", (e) => {
+//             console.error(`Ping failed: ${e.message}`);
+//         });
+//     },11*60*1000); // every 11 minutes
+// }
 
 const io = socketIo(server, {
     cors: {
@@ -92,7 +92,7 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log("Database connected successfully");
         server.listen(5000, () => {
-            ping();
+           // ping();
             console.log(`Server running on port 5000`);
         });
     })
